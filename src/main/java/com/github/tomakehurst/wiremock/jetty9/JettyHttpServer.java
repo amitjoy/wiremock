@@ -15,6 +15,35 @@
  */
 package com.github.tomakehurst.wiremock.jetty9;
 
+import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
+import static com.github.tomakehurst.wiremock.core.WireMockApp.ADMIN_CONTEXT_ROOT;
+
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.NetworkTrafficListener;
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.NetworkTrafficServerConnector;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.servlets.GzipFilter;
+
 import com.github.tomakehurst.wiremock.common.AsynchronousResponseSettings;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.common.HttpsSettings;
@@ -27,27 +56,12 @@ import com.github.tomakehurst.wiremock.http.HttpServer;
 import com.github.tomakehurst.wiremock.http.RequestHandler;
 import com.github.tomakehurst.wiremock.http.StubRequestHandler;
 import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
-import com.github.tomakehurst.wiremock.servlet.*;
+import com.github.tomakehurst.wiremock.servlet.ContentTypeSettingFilter;
+import com.github.tomakehurst.wiremock.servlet.FaultInjectorFactory;
+import com.github.tomakehurst.wiremock.servlet.TrailingSlashFilter;
+import com.github.tomakehurst.wiremock.servlet.WireMockHandlerDispatchingServlet;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
-import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.io.NetworkTrafficListener;
-import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.servlet.*;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.eclipse.jetty.servlets.GzipFilter;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-
-import javax.servlet.DispatcherType;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.EnumSet;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static com.github.tomakehurst.wiremock.core.WireMockApp.ADMIN_CONTEXT_ROOT;
 
 public class JettyHttpServer implements HttpServer {
     private static final String FILES_URL_MATCH = String.format("/%s/*", WireMockApp.FILES_ROOT);
@@ -335,10 +349,10 @@ public class JettyHttpServer implements HttpServer {
             //  As resources can be addressed like "assets/swagger-ui/index.html", a static path element will suffice.
             adminContext.setInitParameter("org.eclipse.jetty.servlet.Default.resourceBase", "assets");
         } else {
-            adminContext.setInitParameter("org.eclipse.jetty.servlet.Default.resourceBase", Resources.getResource("assets").toString());
+            adminContext.setInitParameter("org.eclipse.jetty.servlet.Default.resourceBase", getClass().getClassLoader().getResource("assets").toString());
         }
 
-        Resources.getResource("assets/swagger-ui/index.html");
+        getClass().getClassLoader().getResource("assets/swagger-ui/index.html");
 
         adminContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
         adminContext.addServlet(DefaultServlet.class, "/swagger-ui/*");

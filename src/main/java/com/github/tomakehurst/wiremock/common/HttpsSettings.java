@@ -15,8 +15,6 @@
  */
 package com.github.tomakehurst.wiremock.common;
 
-import com.google.common.io.Resources;
-
 public class HttpsSettings {
 
     private final int port;
@@ -100,7 +98,7 @@ public class HttpsSettings {
     public static class Builder {
 
         private int port;
-        private String keyStorePath = Resources.getResource("keystore").toString();
+        private String keyStorePath = getClass().getClassLoader().getResource("keystore").toString();
         private String keyStorePassword = "password";
         private String keyStoreType = "JKS";
         private String trustStorePath = null;

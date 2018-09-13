@@ -15,7 +15,25 @@
  */
 package com.github.tomakehurst.wiremock.core;
 
-import com.github.tomakehurst.wiremock.common.*;
+import static com.github.tomakehurst.wiremock.core.WireMockApp.MAPPINGS_ROOT;
+import static com.github.tomakehurst.wiremock.extension.ExtensionLoader.valueAssignableFrom;
+import static com.google.common.collect.Lists.transform;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.tomakehurst.wiremock.common.AsynchronousResponseSettings;
+import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
+import com.github.tomakehurst.wiremock.common.FileSource;
+import com.github.tomakehurst.wiremock.common.HttpsSettings;
+import com.github.tomakehurst.wiremock.common.JettySettings;
+import com.github.tomakehurst.wiremock.common.Notifier;
+import com.github.tomakehurst.wiremock.common.ProxySettings;
+import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.extension.Extension;
 import com.github.tomakehurst.wiremock.extension.ExtensionLoader;
 import com.github.tomakehurst.wiremock.http.CaseInsensitiveKey;
@@ -35,17 +53,6 @@ import com.github.tomakehurst.wiremock.verification.notmatched.NotMatchedRendere
 import com.github.tomakehurst.wiremock.verification.notmatched.PlainTextStubNotMatchedRenderer;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
-import com.google.common.io.Resources;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.core.WireMockApp.MAPPINGS_ROOT;
-import static com.github.tomakehurst.wiremock.extension.ExtensionLoader.valueAssignableFrom;
-import static com.google.common.collect.Lists.transform;
-import static com.google.common.collect.Maps.newLinkedHashMap;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 
 public class WireMockConfiguration implements Options {
 
@@ -55,7 +62,7 @@ public class WireMockConfiguration implements Options {
     private int containerThreads = DEFAULT_CONTAINER_THREADS;
 
     private int httpsPort = -1;
-    private String keyStorePath = Resources.getResource("keystore").toString();
+    private String keyStorePath = getClass().getClassLoader().getResource("keystore").toString();
     private String keyStorePassword = "password";
     private String keyStoreType = "JKS";
     private String trustStorePath;
